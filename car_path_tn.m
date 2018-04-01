@@ -1,19 +1,19 @@
 % Compute Car Trajectory according to complex Algorithm
+% Difference between car_path_tn and car_path:
+% Input index tn s.t. grid.t(tn)=t0 instead of t0
 
-function [ x,t ] = car_path( e0,x0,t0,T,road,grid,eps )
+function [ x,t,tn ] = car_path_tn( e0,x0,tn,T,road,grid,eps )
 
 % Initialization
+%k = 0;
 x = x0;
-t = t0;
 e = e0; 
+t = grid.t(tn);
 
 % Determine index of the cell containing x^n
 tmp1 = find(road.xV{e} > x);
 m = tmp1(1);
 
-% Determine time index 
-tmp2 = find(grid.t + eps >= t0);
-tn = tmp2(1);
 
 % while: final time T and the end of the road are not reached
 while ( t(end) < T && x(end) < road.x{e}(end) )
@@ -118,9 +118,10 @@ while ( t(end) < T && x(end) < road.x{e}(end) )
     end
     
     x = [x; x_next];
-    t = [t; t(end)+grid.tau];
     tn = tn + 1;
+    t = [t; grid.t(tn)];
 end
+
 
 end
             

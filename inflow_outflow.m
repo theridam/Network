@@ -1,6 +1,6 @@
 %% Inflow and outflow
 
-function [ road,junction ] = inflow_outflow( v,tn,tau,road,junction,f,sigma,fin,s,d,sB,dB,d1,sB2,dB2,eps,outflowType )
+function [ road,junction ] = inflow_outflow( v,tn,tau,road,junction,f,sigma,fin,s,d,sB,dB,d1,sB2,dB2,eps,outflowType,cType )
     
     % In- and outdegree of node v
     ideg = junction.indegree{v};
@@ -14,10 +14,10 @@ function [ road,junction ] = inflow_outflow( v,tn,tau,road,junction,f,sigma,fin,
     % Inflow of the network
     if (ideg == 0 && odeg == 1)
         
-        road.inflow{out(1)}(1,tn)  = min( d1(v,tn,tau,junction,fin) , s(f,sigma,road.rho{out(1)}(1,tn)) );
+        road.inflow{out(1)}(1,tn)  = min( d1(v,tn,junction,fin) , s(f,sigma,road.rho{out(1)}(1,tn)) );
         junction.outflow{v}(1,tn)  = road.inflow{out(1)}(1,tn);
         
-        junction.inflow{v}(1,tn) = fin(v,(tn-1)*tau);
+        junction.inflow{v}(1,tn) = fin(v,tn);
         
         
     % Outflow of the network
@@ -39,13 +39,13 @@ function [ road,junction ] = inflow_outflow( v,tn,tau,road,junction,f,sigma,fin,
     % One-to-one junction
     elseif (ideg == 1 && odeg == 1)
         
-        NNP = road.NP{in(1)}; %eps?
+        NNP = road.NP{in(1)}; 
         
         road.outflow{in(1)}(1,tn) = min( sB(v,tn,road.rho{out(1)}(1,tn),junction,f,sigma,s,eps) ,  d(f,sigma,road.rho{in(1)}(NNP,tn)) );
-        junction.inflow{v}(1,tn)     = road.outflow{in(1)}(1,tn);
+        junction.inflow{v}(1,tn)  = road.outflow{in(1)}(1,tn);
         
         road.inflow{out(1)}(1,tn)  = min ( dB(v,tn,road.rho{in(1)}(NNP,tn),junction,f,sigma,d) , s(f,sigma,road.rho{out(1)}(1,tn)) );
-        junction.outflow{v}(1,tn)     = road.inflow{out(1)}(1,tn);
+        junction.outflow{v}(1,tn)  = road.inflow{out(1)}(1,tn);
         
         
     % One-to-two junction
@@ -66,13 +66,19 @@ function [ road,junction ] = inflow_outflow( v,tn,tau,road,junction,f,sigma,fin,
         
         NNP1 = road.NP{in(1)};
         NNP2 = road.NP{in(2)};
+        
+        if ( cType == 'max' )
+            if ( d(f,sigma,road.rho{in(1)}(NNP1,tn)) > 0 && d(f,sigma,road.rho{in(2)}(NNP2,tn)) > 0 )
+                junction.c{v}(1) = d(f,sigma,road.rho{in(1)}(NNP1,tn)) / ( d(f,sigma,road.rho{in(1)}(NNP1,tn)) + d(f,sigma,road.rho{in(2)}(NNP2,tn)) );
+                junction.c{v}(2) = d(f,sigma,road.rho{in(2)}(NNP2,tn)) / ( d(f,sigma,road.rho{in(1)}(NNP1,tn)) + d(f,sigma,road.rho{in(2)}(NNP2,tn)) );
+            end
+        end
 
-        road.inflow{out(1)}(1,tn) = min( dB2(v,tn,road.rho{in(1)}(NNP1,tn),road.rho{in(2)}(NNP2,tn),junction,f,sigma,d) , s(f,sigma,road.rho{out(1)}(1,tn)) );
+        road.inflow{out(1)}(1,tn) = min( dB2(v,tn,road.rho{in(1)}(NNP1,tn),road.rho{in(2)}(NNP2,tn),junction,f,sigma,d,cType) , s(f,sigma,road.rho{out(1)}(1,tn)) );
         junction.outflow{v}(1,tn) = road.inflow{out(1)}(1,tn);
         
-        
-        road.outflow{in(1)}(1,tn) = min( junction.c{v}(1)*sB(v,tn,road.rho{out(1)},junction,f,sigma,s,eps) , d(f,sigma,road.rho{in(1)}(NNP1,tn)) );
-        road.outflow{in(2)}(1,tn) = min( junction.c{v}(2)*sB(v,tn,road.rho{out(1)},junction,f,sigma,s,eps) , d(f,sigma,road.rho{in(2)}(NNP2,tn)) );
+        road.outflow{in(1)}(1,tn) = min( junction.c{v}(1)*sB(v,tn,road.rho{out(1)}(1,tn),junction,f,sigma,s,eps) , d(f,sigma,road.rho{in(1)}(NNP1,tn)) );
+        road.outflow{in(2)}(1,tn) = min( junction.c{v}(2)*sB(v,tn,road.rho{out(1)}(1,tn),junction,f,sigma,s,eps) , d(f,sigma,road.rho{in(2)}(NNP2,tn)) );
         junction.inflow{v}(1,tn)  = road.outflow{in(1)}(1,tn) + road.outflow{in(2)}(1,tn);
         
     end

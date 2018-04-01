@@ -25,9 +25,10 @@ eps   = 1.e-10;    % accuracy
 sigma = 0.5;       % f^max = f(sigma)
 CFL   = 0.5;       % coefficient of CFL condition
 oType = 'f';       % outflow type, choose 'd' for maximal flux at an outgoing node and otherwise 'f'
-
+cType = 'not';     % use fixed coefficients c_1 and c_2
 
 % % Exa 1: (No interaction, car with speed v(0.4) )
+% e0  = 1;
 % x0  = 0.2;
 % t0  = 0;
 % p0  = 0.4; 
@@ -36,12 +37,14 @@ oType = 'f';       % outflow type, choose 'd' for maximal flux at an outgoing no
 % % Exa 2: (Interaction with shock traveling to the right: car starts with  
 % % a higher speed and after the interaction, it is slower)
 % % Comparison to analytical solution in mainComparCarPath
+e0 = 1;
 x0 = 0;
 t0 = 0.25;
 p0    = 0.4;
 fin   = @(v,tn) f(0.2);
 
 % % Exa 3: (Interaction with rarefaction traveling to the left: car  
+% e0 = 1;
 % x0 = 0;
 % t0 = 0;
 % p0 = 0.8;
@@ -49,6 +52,7 @@ fin   = @(v,tn) f(0.2);
 % oType = 'd'; 
 
 % % Exa 4: (No interaction with rarefaction traveling to the right)
+% e0 = 1;
 % x0 = 0.2;
 % t0 = 0;
 % p0 = 0.1;
@@ -57,6 +61,7 @@ fin   = @(v,tn) f(0.2);
 
 % % Exa 5: (Starting in rarefaction traveling to the right, final 
 % % intersection would be in x=2.8)
+% e0 = 1;
 % x0 = 0;
 % t0 = 0.125;
 % p0 = 0.1;
@@ -65,7 +70,7 @@ fin   = @(v,tn) f(0.2);
 
 
 %% Calculate Network solution
-[ E,V,road,junction,grid ] = num_sol( nodelist1,nodelist2,L,a,b,N,T,eps,mu,rMax,r0,p0,CFL,alpha,c,@f,sigma,fin,@s,@d,@sB,@dB,@sB2,@dB2,@d1,'Godunov',oType );
+[ G,E,V,road,junction,grid ] = num_sol( nodelist1,nodelist2,L,a,b,N,T,eps,mu,rMax,r0,p0,CFL,alpha,c,@f,sigma,fin,@s,@d,@sB,@dB,@sB2,@dB2,@d1,'Godunov',oType,cType );
 
 % plotDensities(E,road,grid.t)
 % plotFlux(E,road,grid.t,@f)
@@ -74,10 +79,10 @@ fin   = @(v,tn) f(0.2);
 %% Calculate car trajectory  
 
 % Complex Algo
-[x,t] = car_path( x0,t0,Tx,road,grid );
+[x,t] = car_path( e0,x0,t0,T,road,grid,eps );
 
 % Simple Algo
-[xs,ts] = car_path_simple( x0,t0,Tx,road,grid );
+[xs,ts] = car_path_simple( e0,x0,t0,T,road,grid,eps );
 
 
 %% Plot

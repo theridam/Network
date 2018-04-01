@@ -1,5 +1,5 @@
 % Network given by Herty et al
-% Parameter Setting similar to Figure 8-10
+% Parameter Setting similar to Figure 8
 
 % Initialization
 
@@ -18,7 +18,6 @@ rMax  = [Inf, Inf, Inf, Inf, Inf, Inf];
 r0    = [0, 0, 0, 0, 0, 0];            
 alpha = [0 0.4 0.4 0 0 0; 0 0.6 0.6 0 0 0];
 c     = [0 0 0 0.5 0.5 0; 0 0 0 0.5 0.5 0];
-%c = [0 0 0 0.6 0.5 0; 0 0 0 0.4 0.5 0];
 
 % Parameters
 T     = 15;        % time horizon
@@ -26,36 +25,30 @@ eps   = 1.e-10;    % accuracy
 sigma = 0.5;       % f^max = f(sigma)
 CFL   = 0.5;       % coefficient of CFL condition
 oType = 'f';       % outflow type, choose 'd' for maximal flux at an outgoing node and otherwise 'f'
-cType ='max';      % c_1 and c_2 are chosen such that the flux is maximized
 
-% % Setting 1 (Figure 8b)
+% % Setting ( similar to Figure 8b in Herty)
 p0  = [0 0 0 0 0 0 0]; 
 mu  = 0.25*ones(1,6);
 fin = @(v,tn) f(0.45);
 
-% % Setting 1.1 (Alternative): Puffer bleiben leer, Verdünnung von links
-% % nach rechts bis Gleichgewicht erreicht
-% % T   = 15;
-% % p0  = [0 0 0 0 0 0 0]; 
-% % mu  = 0.25*ones(1,6);
-% % fin = @(v,tn) f(0.2);
 
-% % Setting 2 (Figure 9b)
-% p0 = [0 0.9 0.9 0 0 0 0];  
-% mu = [0.25 0.25 0.01 0.25 0.25 0.25]; 
-% fin   = @(v,tn) f(0.7);
+%% Calculate numerical solution 
 
-% % % Setting 3 (Figure 10b)
-% p0 = [0 0.9 0.9 0 0 0 0];
-% mu = [0.25 0.25 0.01 0.25 0.25 0.25]; 
-% m = T*(N(1)/CFL);
-% R = -pi:2*pi/m:pi;
-% Vectrho1=0.4*abs(sin(R));
-% fin = @(v,tn) f(Vectrho1(tn));
-
-
+% Fixed right-of-way parameter c_1 and c_2
+cType ='not';      % c_1 = c_2 = 0.5
 
 [ G,E,V,road,junction,grid ] = num_sol( nodelist1,nodelist2,L,a,b,N,T,eps,mu,rMax,r0,p0,CFL,alpha,c,@f,sigma,fin,@s,@d,@sB,@dB,@sB2,@dB2,@d1,'Godunov',oType,cType );
+inflow_fix = junction.inflow{1};
+outflow_fix = junction.outflow{V};
+
+% Variable right-of-way parameter depending on the demand
+% cType ='max'; 
+% 
+% [ G,E,V,road,junction,grid ] = num_sol( nodelist1,nodelist2,L,a,b,N,T,eps,mu,rMax,r0,p0,CFL,alpha,c,@f,sigma,fin,@s,@d,@sB,@dB,@sB2,@dB2,@d1,'Godunov',oType,cType );
+% inflow_var = junction.inflow{1};
+% outflow_var = junction.outflow{V};
+
+%% Plot 
 
 % plotDensities(E,road,grid.t)
 % plotDensities_LastTimeStep(E,road,grid.t)
@@ -65,4 +58,14 @@ fin = @(v,tn) f(0.45);
 
 plotInflowOutflow(V,junction,grid.t)
 plotBuffers(V,junction,grid.t)
+
+
+%% Write to .csv files
+% header = {'t','inflow','outflow'};
+% data_fix = [grid.t', inflow_fix',outflow_fix'];
+% csvwrite_with_headers('data_fix.csv',data_fix,header);
+% 
+% data_var = [grid.t', inflow_var',outflow_var'];
+% csvwrite_with_headers('data_var.csv',data_var,header);
+
 

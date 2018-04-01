@@ -27,8 +27,9 @@ sigma = 0.5;       % f^max = f(sigma)
 CFL   = 0.5;       % coefficient of CFL condition
 fin   = @(v,tn) f(0.4);
 oType = 'f';       % outflow type, choose 'd' for maximal flux at an outgoing node and otherwise 'f'
+cType ='not';      % c_1 and c_2 are fixed
 
-[ E,V,road,junction,grid ] = num_sol( nodelist1,nodelist2,L,a,b,N,T,eps,mu,rMax,r0,p0,CFL,alpha,c,@f,sigma,fin,@s,@d,@sB,@dB,@sB2,@dB2,@d1,'LxF',oType );
+[ G,E,V,road,junction,grid ] = num_sol( nodelist1,nodelist2,L,a,b,N,T,eps,mu,rMax,r0,p0,CFL,alpha,c,@f,sigma,fin,@s,@d,@sB,@dB,@sB2,@dB2,@d1,'LxF',oType,cType );
 
 plotDensities(E,road,grid.t)
 plotFlux(E,road,grid.t,@f)
